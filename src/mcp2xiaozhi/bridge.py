@@ -21,14 +21,16 @@ from typing import TYPE_CHECKING, Any
 
 import anyio
 from mcp.shared.message import SessionMessage
+
 from mcp.types import (
     ErrorData,
     JSONRPCError,
     JSONRPCMessage,
     JSONRPCRequest,
     JSONRPCResponse,
-    jsonrpc_message_adapter,
 )
+
+from pydantic import TypeAdapter
 
 from .exceptions import BridgeError, TransportError, WebSocketError
 from .logging_setup import get_logger
@@ -39,6 +41,8 @@ from .ws import XiaozhiWsClient
 
 if TYPE_CHECKING:
     from .config import ServerConfig
+
+_JSONRPC_MESSAGE_ADAPTER = TypeAdapter(JSONRPCMessage)
 
 logger = get_logger("bridge")
 
@@ -183,7 +187,7 @@ class McpBridge:
                     continue
                 logger.debug("[%s] ws >> mcp: %s", self.name, _truncate(raw))
                 try:
-                    message = jsonrpc_message_adapter.validate_json(raw)
+                    message = _JSONRPC_MESSAGE_ADAPTER.validate_json(raw)
                 except Exception as exc:
                     self.metrics.malformed_frames += 1
                     logger.warning(
