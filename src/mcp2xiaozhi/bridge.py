@@ -27,6 +27,7 @@ from mcp.types import (
     JSONRPCMessage,
     JSONRPCRequest,
     JSONRPCResponse,
+    jsonrpc_message_adapter,
 )
 
 from .exceptions import BridgeError, TransportError, WebSocketError
@@ -182,7 +183,7 @@ class McpBridge:
                     continue
                 logger.debug("[%s] ws >> mcp: %s", self.name, _truncate(raw))
                 try:
-                    message = JSONRPCMessage.model_validate_json(raw)
+                    message = jsonrpc_message_adapter.validate_json(raw)
                 except Exception as exc:
                     self.metrics.malformed_frames += 1
                     logger.warning(
